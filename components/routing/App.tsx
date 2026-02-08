@@ -2,7 +2,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 
 
-import Home from '../../screen/Home';
+import Home from '../../screen/Profile';
 
 
 const Stack = createStackNavigator();
@@ -21,9 +21,6 @@ export default function App() {
                     headerTitleAlign: "center",
                 }}
             />
-
-
-
         </Stack.Navigator>
     );
 }

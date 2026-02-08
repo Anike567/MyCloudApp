@@ -9,7 +9,7 @@ import { useAuth } from '../hooks/useAuth';
 import Loader from '../components/reusable/Loader';
 
 
-export default function Home() {
+export default function Profile() {
     const { logout } = useAuth();
     const [isLoading, setIsLoading] = useState<boolean>(false); 
     async function handloeLogout() {
