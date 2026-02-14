@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["GalleryScannerModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.galleryscanner.GalleryScannerModule"]
+  }
+}
