@@ -1,14 +1,14 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /home/aniket/AndroidProject/MyCloudApp/modules/gallery-scanner/android/src/main/AndroidManifest.xml:1:1-2:12
-INJECTED from /home/aniket/AndroidProject/MyCloudApp/modules/gallery-scanner/android/src/main/AndroidManifest.xml:1:1-2:12
+ADDED from /Users/apple/Shouvik/mine/cloud/frontend/MyCloudApp/modules/gallery-scanner/android/src/main/AndroidManifest.xml:1:1-2:12
+INJECTED from /Users/apple/Shouvik/mine/cloud/frontend/MyCloudApp/modules/gallery-scanner/android/src/main/AndroidManifest.xml:1:1-2:12
 	package
-		INJECTED from /home/aniket/AndroidProject/MyCloudApp/modules/gallery-scanner/android/src/main/AndroidManifest.xml
+		INJECTED from /Users/apple/Shouvik/mine/cloud/frontend/MyCloudApp/modules/gallery-scanner/android/src/main/AndroidManifest.xml
 uses-sdk
-INJECTED from /home/aniket/AndroidProject/MyCloudApp/modules/gallery-scanner/android/src/main/AndroidManifest.xml reason: use-sdk injection requested
-INJECTED from /home/aniket/AndroidProject/MyCloudApp/modules/gallery-scanner/android/src/main/AndroidManifest.xml
-INJECTED from /home/aniket/AndroidProject/MyCloudApp/modules/gallery-scanner/android/src/main/AndroidManifest.xml
+INJECTED from /Users/apple/Shouvik/mine/cloud/frontend/MyCloudApp/modules/gallery-scanner/android/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/apple/Shouvik/mine/cloud/frontend/MyCloudApp/modules/gallery-scanner/android/src/main/AndroidManifest.xml
+INJECTED from /Users/apple/Shouvik/mine/cloud/frontend/MyCloudApp/modules/gallery-scanner/android/src/main/AndroidManifest.xml
 	android:targetSdkVersion
-		INJECTED from /home/aniket/AndroidProject/MyCloudApp/modules/gallery-scanner/android/src/main/AndroidManifest.xml
+		INJECTED from /Users/apple/Shouvik/mine/cloud/frontend/MyCloudApp/modules/gallery-scanner/android/src/main/AndroidManifest.xml
 	android:minSdkVersion
-		INJECTED from /home/aniket/AndroidProject/MyCloudApp/modules/gallery-scanner/android/src/main/AndroidManifest.xml
+		INJECTED from /Users/apple/Shouvik/mine/cloud/frontend/MyCloudApp/modules/gallery-scanner/android/src/main/AndroidManifest.xml

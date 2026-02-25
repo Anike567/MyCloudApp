@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler';
-import './tasks/syncTask';
+import './tasks/syncTask'; // Ensure MY_SYNC_TASK is defined here
 
 import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
@@ -10,16 +10,43 @@ import * as BackgroundTask from 'expo-background-task';
 import * as TaskManager from 'expo-task-manager';
 import * as Notifications from 'expo-notifications';
 import { MY_SYNC_TASK } from './tasks/syncTask';
+import apiClient from './api_call/apiClient';
 
+// 1. Define the Task Name
+const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND_NOTIFICATION_TASK';
+
+// 2. Define the task in the GLOBAL SCOPE (Mandatory)
+TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error }: any) => {
+  if (error) {
+    console.error("❌ Background notification task error:", error);
+    return;
+  }
+
+  try {
+    
+    const { reqId, location } = data.data;
+    console.log(reqId, location);
+    if (reqId) {
+      const body = {
+        "request_id": reqId,
+        "data": location || "no-location",
+      };
+      console.log("api calling");
+      await apiClient.post("/fetch/callback", body);
+      console.log("✅ Background callback successful");
+    }
+  } catch (err) {
+    console.error("❌ API Call failed in background:", err);
+  }
+});
 
 export default function App() {
-
   useEffect(() => {
     const configureNotifications = async () => {
-      // 1. Request Permission
+      // Request Permission
       await Notifications.requestPermissionsAsync();
 
-      // 2. Create the Android Channel (Required for background visibility)
+      // Create the Android Channel
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('default', {
           name: 'default',
@@ -30,18 +57,23 @@ export default function App() {
       }
     };
 
-    const setupBackgroundSync = async () => {
+    const setupTasks = async () => {
       try {
-        const isRegistered = await TaskManager.isTaskRegisteredAsync(MY_SYNC_TASK);
-        if (!isRegistered) {
-          console.log("⚙️ Registering background task...");
-          // ✅ Simplified options to satisfy TypeScript
+        // A. Register Notification Task
+        const isNotifRegistered = await TaskManager.isTaskRegisteredAsync(BACKGROUND_NOTIFICATION_TASK);
+        if (!isNotifRegistered) {
+          await Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+          console.log("✅ Notification task registered");
+        }
+
+        // B. Register Periodic Sync Task
+        const isSyncRegistered = await TaskManager.isTaskRegisteredAsync(MY_SYNC_TASK);
+        if (!isSyncRegistered) {
+          // FIX: Removed 'stopOnTerminate' and 'startOnBoot' to satisfy TypeScript
           await BackgroundTask.registerTaskAsync(MY_SYNC_TASK, {
-            minimumInterval: 15 * 60,
+            minimumInterval: 15 * 60, // 15 minutes
           });
-          console.log("✅ Task registered successfully!");
-        } else {
-          console.log("ℹ️ Background task already exists.");
+          console.log("✅ Sync task registered");
         }
       } catch (error) {
         console.error("❌ Registration error:", error);
@@ -49,8 +81,8 @@ export default function App() {
     };
 
     const prepareApp = async () => {
-      await Notifications.requestPermissionsAsync();
-      await setupBackgroundSync();
+      await configureNotifications();
+      await setupTasks();
     };
 
     prepareApp();

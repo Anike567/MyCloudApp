@@ -43,6 +43,7 @@ export const useSignup = () => {
                 ]);
             }
         } catch (error) {
+            console.log(error);
             let errorMessage = 'An error occurred during signup.';
 
             if (axios.isAxiosError(error)) {
