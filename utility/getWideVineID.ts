@@ -1,21 +1,12 @@
-import { NativeModules } from "react-native";
+import * as DeviceId from 'device-id';
 
 /**
  * Fetches the unique hardware-bound Widevine ID.
- * returns {Promise<string>} A promise that resolves to the Base64 encoded ID.
+ * returns {string}  Base64 encoded ID.
  */
-export default async function getWideVineID(): Promise<string> {
-    const { DeviceIdentity } = NativeModules;
+export default function getWideVineID():string{
 
-    if (!DeviceIdentity) {
-        throw new Error("DeviceIdentity native module is not linked correctly.");
-    }
-
-    try {
-        const id: string = await DeviceIdentity.getWidevineId();
-        return id;
-    } catch (error) {
-        console.error("Failed to get Widevine ID:", error);
-        throw error;
-    }
+    const myId = DeviceId.getAndroidId();
+    console.log("📱 Unique Android ID:", myId);
+    return myId;
 }

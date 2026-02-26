@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 
+
 async function registerForPushNotificationsAsync() {
   if (!Device.isDevice) {
     console.log('Must use physical device for Push Notifications');
