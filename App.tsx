@@ -10,35 +10,13 @@ import * as BackgroundTask from 'expo-background-task';
 import * as TaskManager from 'expo-task-manager';
 import * as Notifications from 'expo-notifications';
 import { MY_SYNC_TASK } from './tasks/syncTask';
-import apiClient from './api_call/apiClient';
+import notificationResponder from './tasks/notificationResponder';
 
 // 1. Define the Task Name
 const BACKGROUND_NOTIFICATION_TASK = 'BACKGROUND_NOTIFICATION_TASK';
 
 // 2. Define the task in the GLOBAL SCOPE (Mandatory)
-TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, async ({ data, error }: any) => {
-  if (error) {
-    console.error("❌ Background notification task error:", error);
-    return;
-  }
-
-  try {
-    
-    const { reqId, location } = data.data;
-    console.log(reqId, location);
-    if (reqId) {
-      const body = {
-        "request_id": reqId,
-        "data": location || "no-location",
-      };
-      console.log("api calling");
-      await apiClient.post("/fetch/callback", body);
-      console.log("✅ Background callback successful");
-    }
-  } catch (err) {
-    console.error("❌ API Call failed in background:", err);
-  }
-});
+TaskManager.defineTask(BACKGROUND_NOTIFICATION_TASK, notificationResponder);
 
 export default function App() {
   useEffect(() => {

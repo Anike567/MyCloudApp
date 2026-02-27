@@ -5,101 +5,75 @@ import * as MediaLibrary from 'expo-media-library';
 import { FlashList } from "@shopify/flash-list";
 
 import Loader from '../components/reusable/Loader';
+import apiClient from '../api_call/apiClient';
+import { useAuth } from '../hooks/useAuth';
+import getWideVineID from '../utility/getWideVineID';
 
 const { width } = Dimensions.get('window');
 const COLUMN_COUNT = 3;
 const IMAGE_SIZE = width / COLUMN_COUNT;
 
+// ... existing imports
+
 export default function GalleryScreen() {
-   
-    const [loading, setLoading] = useState(true); 
-    const [assets, setAssets] = useState<MediaLibrary.Asset[]>([]);
-    const [hasNextPage, setHasNextPage] = useState(true);
-    const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
-    const [isFetchingMore, setIsFetchingMore] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [images, setImages] = useState([]); // This will hold your content:// URIs
+    const { token } = useAuth();
+
+    const getImages = async () => {
+        try {
+            // ✅ Await the ID and use it in the body
+            const deviceId = await getWideVineID();
+            const response = await apiClient.post('/upload/images',
+                { deviceId },
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+            
+            // Assuming backend returns { images: ["content://...", "content://..."] }
+            setImages(response.data.images);
+        }
+        catch (err) {
+            console.log("Fetch Error:", err);
+        }
+        finally {
+            setLoading(false);
+        }
+    }
 
     useEffect(() => {
-        const initGallery = async () => {
-            try {
-                const { status: existingStatus, canAskAgain } = await MediaLibrary.getPermissionsAsync();
-                let finalStatus = existingStatus;
-
-                if (existingStatus !== 'granted' && canAskAgain) {
-                    const { status } = await MediaLibrary.requestPermissionsAsync();
-                    finalStatus = status;
-                }
-
-                if (finalStatus === 'granted') {
-                    await loadInitialPhotos();
-                }
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
+        const init = async () => {
+            const { status } = await MediaLibrary.requestPermissionsAsync();
+            if (status === 'granted') {
+                await getImages();
             }
         };
-
-        initGallery();
+        init();
     }, []);
 
-    const loadInitialPhotos = async () => {
-        const result = await MediaLibrary.getAssetsAsync({
-            first: 50,
-            mediaType: ['photo'],
-            sortBy: ['creationTime'],
-        });
-        setAssets(result.assets);
-        setHasNextPage(result.hasNextPage);
-        setEndCursor(result.endCursor);
-    };
-
-    const loadMorePhotos = async () => {
-        if (!hasNextPage || isFetchingMore) return;
-
-        setIsFetchingMore(true);
-        const result = await MediaLibrary.getAssetsAsync({
-            first: 50,
-            after: endCursor,
-            mediaType: ['photo'],
-            sortBy: ['creationTime'],
-        });
-
-        setAssets(prev => [...prev, ...result.assets]);
-        setHasNextPage(result.hasNextPage);
-        setEndCursor(result.endCursor);
-        setIsFetchingMore(false);
-    };
-
     return (
-        <View style={{ 
-            flex: 1, 
-        }}>
-            <StatusBar style="dark" backgroundColor="white" />
-            
-            <Loader visible={loading} message="Accessing Gallery..." />
-            
+        <View style={{ flex: 1, backgroundColor: 'white' }}>
+            <StatusBar style="dark" />
+            <Loader visible={loading} message="Loading your Cloud Index..." />
+
             <FlashList
-                data={assets}
+                data={images} // ✅ Use the array of URIs from backend
                 numColumns={COLUMN_COUNT}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item, index) => index.toString()}
                 estimatedItemSize={IMAGE_SIZE}
-                onEndReached={loadMorePhotos}
-                onEndReachedThreshold={0.5}
                 renderItem={({ item }) => (
                     <Image
-                        source={{ uri: item.uri }}
-                        style={{ 
-                            width: IMAGE_SIZE, 
-                            height: IMAGE_SIZE, 
-                            borderWidth: 1, 
-                            borderColor: '#fff' 
+                        source={{ uri: item }} // ✅ 'item' is the content:// string
+                        style={{
+                            width: IMAGE_SIZE,
+                            height: IMAGE_SIZE,
+                            borderWidth: 1,
+                            borderColor: '#fff'
                         }}
                     />
                 )}
-                ListFooterComponent={isFetchingMore ? (
-                    <ActivityIndicator size="small" color="#eb85d1" style={{ margin: 20 }} />
-                ) : null}
             />
         </View>
     );
-}   
+}

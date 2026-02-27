@@ -55,7 +55,7 @@ TaskManager.defineTask(MY_SYNC_TASK, async () => {
 
 
         const syncResponse = await axios.post(
-            'http://anikets-machine.local:3000/upload/sync',
+            'http://10.23.185.251:3000/upload/sync',
             { deviceId, images: hashesOnly },
             {
                 headers: { Authorization: `Bearer ${storedToken}` },
@@ -76,27 +76,23 @@ TaskManager.defineTask(MY_SYNC_TASK, async () => {
 
 
         for (let i = 0; i < total; i++) {
-            const item = toUpload[i];
+
+            const item = toUpload[i]; 
             const current = i + 1;
 
-
-
             try {
-                await FileSystem.uploadAsync(
-                    'http://anikets-machine.local:3000/upload/upload',
-                    item.path.startsWith('file://') ? item.path : `file://${item.path}`,
+                const body = {
+                    deviceId: deviceId,
+                    checksum: item.hash, 
+                    imageLocation: item.uri, 
+                };
+
+                const response = await axios.post("http://10.23.185.251:3000/upload/upload",
+                    body,
                     {
-                        fieldName: 'image',
-                        httpMethod: 'POST',
-
-                        /** ✅ Works in ALL Expo versions */
-                        uploadType: MULTIPART_UPLOAD_TYPE,
-
                         headers: {
-                            Authorization: `Bearer ${storedToken}`,
-                            'x-device-id': String(deviceId),
-                            'x-file-hash': item.hash,
-                        },
+                            Authorization: `Bearer ${storedToken}`
+                        }
                     }
                 );
                 await Notifications.scheduleNotificationAsync({
