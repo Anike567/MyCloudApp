@@ -9,6 +9,7 @@ import Loader from '../components/reusable/Loader';
 import LinkButton from '../components/reusable/LinkButton';
 import { useLogin } from '../hooks/useLogin';
 import { useNavigation, StackActions } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
 
 export function Login() {
     const navigation = useNavigation();
@@ -23,6 +24,7 @@ export function Login() {
 
     return (
         <Container>
+            <StatusBar style="auto" />
             <Loader visible={isLoading} message='Signing in ...' />
             
             <View style={styles.header}>

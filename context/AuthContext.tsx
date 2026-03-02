@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (storedToken && parsedUser?.id) {
         try {
           const fcmToken = await registerForPushNotificationsAsync();
-
+          console.log(fcmToken);
           const body = {
             androidId: deviceId,
             userId: parsedUser.id,

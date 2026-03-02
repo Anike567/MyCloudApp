@@ -33,6 +33,8 @@ const uploadAsBufferStream = async (contentUri: string, reqId: string) => {
                 position: offset,
             });
 
+            // ✅ Remove any hidden newlines or carriage returns
+            const cleanChunk = chunk.replace(/(\r\n|\n|\r)/gm, "");
             const isFinal = (offset + CHUNK_SIZE) >= fileSize;
 
             await apiClient.post('/upload/upload-stream', {

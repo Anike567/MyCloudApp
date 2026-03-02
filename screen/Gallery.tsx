@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Image, Dimensions, ActivityIndicator } from 'react-native'; // Removed SafeAreaView
+import { View, Image, Dimensions} from 'react-native'; // Removed SafeAreaView
 import { StatusBar } from 'expo-status-bar';
 import * as MediaLibrary from 'expo-media-library';
 import { FlashList } from "@shopify/flash-list";
@@ -17,7 +17,7 @@ const IMAGE_SIZE = width / COLUMN_COUNT;
 
 export default function GalleryScreen() {
     const [loading, setLoading] = useState(true);
-    const [images, setImages] = useState([]); // This will hold your content:// URIs
+    const [images, setImages] = useState([]); 
     const { token } = useAuth();
 
     const getImages = async () => {
@@ -31,7 +31,6 @@ export default function GalleryScreen() {
                 }
             );
             
-            // Assuming backend returns { images: ["content://...", "content://..."] }
             setImages(response.data.images);
         }
         catch (err) {
@@ -64,7 +63,7 @@ export default function GalleryScreen() {
                 estimatedItemSize={IMAGE_SIZE}
                 renderItem={({ item }) => (
                     <Image
-                        source={{ uri: item }} // ✅ 'item' is the content:// string
+                        source={{ uri: item }} 
                         style={{
                             width: IMAGE_SIZE,
                             height: IMAGE_SIZE,
