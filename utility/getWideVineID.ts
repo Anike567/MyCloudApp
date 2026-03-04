@@ -1,4 +1,4 @@
-import * as DeviceId from 'device-id';
+import * as DeviceId from './../modules/device-id';
 
 /**
  * Fetches the unique hardware-bound Widevine ID.

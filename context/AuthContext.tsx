@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     initializeAuth();
-  }, []);
+  }, [token]);
 
   const saveToken = async (newToken: string | null) => {
     setToken(newToken);

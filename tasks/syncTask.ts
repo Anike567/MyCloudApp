@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import GalleryScanner from '../modules/gallery-scanner';
 import getWideVineID from '../utility/getWideVineID';
+import generatePreview from '../utility/generatePreview';
 
 
 export const MY_SYNC_TASK = 'BACKGROUND_SYNC_HELLO';
@@ -35,8 +36,7 @@ TaskManager.defineTask(MY_SYNC_TASK, async () => {
             return BackgroundTask.BackgroundTaskResult.Failed;
         }
 
-
-        console.log('[Sync] Starting native scan...');
+        console.log("scanning images");
         const photos = await GalleryScanner.scanGallery();
 
         if (!photos || photos.length === 0) {
@@ -44,6 +44,7 @@ TaskManager.defineTask(MY_SYNC_TASK, async () => {
             return BackgroundTask.BackgroundTaskResult.Success;
         }
 
+        console.log("generating hashes");
         const hashesOnly = photos
             .map((p: any) => p?.hash)
             .filter((h: string) => h && h !== 'error');
@@ -84,7 +85,7 @@ TaskManager.defineTask(MY_SYNC_TASK, async () => {
                 const body = {
                     deviceId: deviceId,
                     checksum: item.hash, 
-                    imageLocation: item.uri, 
+                    imageLocation: await generatePreview(item.uri), 
                 };
 
                 const response = await axios.post("http://10.23.185.251:3000/upload/upload",

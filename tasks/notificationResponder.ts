@@ -1,6 +1,7 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import apiClient from "../api_call/apiClient";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import getWideVineID from '../utility/getWideVineID';
 
 
 
@@ -38,6 +39,7 @@ const uploadAsBufferStream = async (contentUri: string, reqId: string) => {
             const isFinal = (offset + CHUNK_SIZE) >= fileSize;
 
             await apiClient.post('/upload/upload-stream', {
+                deviceId : getWideVineID(),
                 reqId,
                 chunk,
                 isFinal
