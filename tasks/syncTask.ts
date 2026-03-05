@@ -56,8 +56,8 @@ TaskManager.defineTask(MY_SYNC_TASK, async () => {
 
 
         const syncResponse = await axios.post(
-            'http://10.23.185.251:3000/upload/sync',
-            { deviceId, images: hashesOnly },
+            'http://10.118.40.251:3000/upload/sync',
+            { deviceId: deviceId, images: hashesOnly },
             {
                 headers: { Authorization: `Bearer ${storedToken}` },
                 timeout: 60000,
@@ -77,25 +77,32 @@ TaskManager.defineTask(MY_SYNC_TASK, async () => {
 
 
         for (let i = 0; i < total; i++) {
-
-            const item = toUpload[i]; 
+            const item = toUpload[i];
             const current = i + 1;
 
+            if (!item || !item.path) {
+                console.error(`[Sync] Skipping item ${i}: Path is missing`);
+                continue;
+            }
+
             try {
+                // Move these inside the try-catch so individual file errors are caught
+                const previewPath = await generatePreview(item.path);
+                const base64Image = await FileSystem.readAsStringAsync(previewPath, {
+                    encoding: FileSystem.EncodingType.Base64,
+                });
+
                 const body = {
                     deviceId: deviceId,
-                    checksum: item.hash, 
-                    imageLocation: await generatePreview(item.uri), 
+                    checksum: item.hash,
+                    imageLocation: base64Image,
                 };
 
-                const response = await axios.post("http://10.23.185.251:3000/upload/upload",
-                    body,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${storedToken}`
-                        }
-                    }
-                );
+                await axios.post("http://10.118.40.251:3000/upload/upload", body, {
+                    headers: { Authorization: `Bearer ${storedToken}` }
+                });
+
+                // Update notification on success
                 await Notifications.scheduleNotificationAsync({
                     identifier: PROGRESS_NOTIFICATION_ID,
                     content: {
@@ -103,11 +110,7 @@ TaskManager.defineTask(MY_SYNC_TASK, async () => {
                         body: `Syncing ${current} of ${total} images`,
                         android: {
                             channelId: 'default',
-                            progress: {
-                                max: total,
-                                current,
-                                indeterminate: false,
-                            },
+                            progress: { max: total, current, indeterminate: false },
                             sticky: true,
                         },
                     } as any,
@@ -115,11 +118,11 @@ TaskManager.defineTask(MY_SYNC_TASK, async () => {
                 });
 
             } catch (err) {
-                console.error(`[Sync] Upload failed for ${item.hash}`, err);
-                return BackgroundTask.BackgroundTaskResult.Failed;
+                // 🚀 This is the key: Log and continue, don't return!
+                console.error(`[Sync] Failed at item ${current} (${item.hash}):`, err);
+                // The loop will naturally continue to the next 'i'
             }
         }
-
         await Notifications.dismissNotificationAsync(PROGRESS_NOTIFICATION_ID);
 
         await Notifications.scheduleNotificationAsync({

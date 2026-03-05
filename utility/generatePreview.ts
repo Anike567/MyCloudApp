@@ -4,9 +4,9 @@ const generatePreview = async (uri: string) => {
   try {
     const result = await manipulateAsync(
       uri,
-      [{ resize: { width: 50, height: 50 } }],
+      [{ resize: { width: 200, } }],
       {
-        compress: 0.5, // slightly more compression for smaller size
+        compress: 0.7,
         format: SaveFormat.JPEG,
       }
     );
