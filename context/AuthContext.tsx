@@ -4,6 +4,7 @@ import { User } from "../types/user";
 import apiClient from "../api_call/apiClient";
 import getWideVineID from "../utility/getWideVineID";
 import registerForPushNotificationsAsync from "../utility/registerNotification";
+import { onUnauthenticated } from "../utility/authEvent";
 
 interface AuthContextType {
   isLoggedIn: boolean;
@@ -68,6 +69,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+
+    onUnauthenticated(()=>{
+      logout();
+    })
     initializeAuth();
   }, [token]);
 
@@ -91,11 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      // if (token) {
-      //   await apiClient.post('/logout', {}, {
-      //     headers: { 'Authorization': `Bearer ${token}` }
-      //   }).catch(() => console.warn("Server logout failed, clearing local."));
-      // }
+     
       setToken(null);
       setUser(null);
       await AsyncStorage.multiRemove(['auth_token', 'auth_user']);
