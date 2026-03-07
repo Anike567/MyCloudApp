@@ -23,9 +23,10 @@ const MULTIPART_UPLOAD_TYPE =
     // Very old Expo fallback
     2;
 
+// ... (imports remain the same)
+
 TaskManager.defineTask(MY_SYNC_TASK, async () => {
     try {
-
         const [storedToken, deviceId] = await Promise.all([
             AsyncStorage.getItem('auth_token'),
             getWideVineID(),
@@ -54,12 +55,15 @@ TaskManager.defineTask(MY_SYNC_TASK, async () => {
             return BackgroundTask.BackgroundTaskResult.Success;
         }
 
-
+        // 1. Fixed Sync Call with Headers
         const syncResponse = await axios.post(
-            'http://10.118.40.251:3000/upload/sync',
+            'http://anikets-machine.local:3000/upload/sync',
             { deviceId: deviceId, images: hashesOnly },
             {
-                headers: { Authorization: `Bearer ${storedToken}` },
+                headers: {
+                    'Authorization': `Bearer ${storedToken}`,
+                    'x-device-id': deviceId, // ✅ Manually added header
+                },
                 timeout: 60000,
             }
         );
@@ -75,7 +79,6 @@ TaskManager.defineTask(MY_SYNC_TASK, async () => {
         const toUpload = photos.filter((p: any) => missingSet.has(p.hash));
         const total = toUpload.length;
 
-
         for (let i = 0; i < total; i++) {
             const item = toUpload[i];
             const current = i + 1;
@@ -86,7 +89,7 @@ TaskManager.defineTask(MY_SYNC_TASK, async () => {
             }
 
             try {
-                // Move these inside the try-catch so individual file errors are caught
+                console.log(item.path);
                 const previewPath = await generatePreview(item.path);
                 const base64Image = await FileSystem.readAsStringAsync(previewPath, {
                     encoding: FileSystem.EncodingType.Base64,
@@ -95,14 +98,18 @@ TaskManager.defineTask(MY_SYNC_TASK, async () => {
                 const body = {
                     deviceId: deviceId,
                     checksum: item.hash,
-                    imageLocation: base64Image,
+                    imageLocation: item.path,
+                    preview: base64Image,
                 };
 
-                await axios.post("http://10.118.40.251:3000/upload/upload", body, {
-                    headers: { Authorization: `Bearer ${storedToken}` }
+                // 2. Added Headers to the individual Upload call
+                await axios.post("http://anikets-machine.local:3000/upload/upload", body, {
+                    headers: { 
+                        'Authorization': `Bearer ${storedToken}`,
+                        'x-device-id': deviceId, // ✅ Manually added header
+                    }
                 });
 
-                // Update notification on success
                 await Notifications.scheduleNotificationAsync({
                     identifier: PROGRESS_NOTIFICATION_ID,
                     content: {
@@ -118,11 +125,10 @@ TaskManager.defineTask(MY_SYNC_TASK, async () => {
                 });
 
             } catch (err) {
-                // 🚀 This is the key: Log and continue, don't return!
                 console.error(`[Sync] Failed at item ${current} (${item.hash}):`, err);
-                // The loop will naturally continue to the next 'i'
             }
         }
+        
         await Notifications.dismissNotificationAsync(PROGRESS_NOTIFICATION_ID);
 
         await Notifications.scheduleNotificationAsync({
@@ -137,9 +143,7 @@ TaskManager.defineTask(MY_SYNC_TASK, async () => {
         return BackgroundTask.BackgroundTaskResult.Success;
     } catch (error: any) {
         console.error('[Sync] Critical error:', error?.message || error);
-
         await Notifications.dismissNotificationAsync(PROGRESS_NOTIFICATION_ID);
-
         return BackgroundTask.BackgroundTaskResult.Failed;
     }
 });
