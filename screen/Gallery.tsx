@@ -27,6 +27,7 @@ export default function GalleryScreen() {
     const [selectedImage, setSelectedImage] = useState<{
         image_location: string;
         device_id: string;
+        id : number;
     } | null>(null);
 
     const getImages = async (isRefreshing = false) => {
@@ -91,6 +92,7 @@ export default function GalleryScreen() {
                 onPress={() => setSelectedImage({
                     image_location: item.image_location,
                     device_id: item.device_id, 
+                    id : item.id,
                 })}
                 style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
             >

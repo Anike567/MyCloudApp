@@ -11,6 +11,7 @@ export interface ImageModalProps {
     selectedImage: {
         image_location: string;
         device_id: string;
+        id : number; 
     } | null;
     onClose: () => void;
 }
@@ -29,6 +30,7 @@ export default function ImageModal({ selectedImage, onClose }: ImageModalProps) 
         try {
             setLoading(true);
             const res = await apiClient.post(`/fetch/images`, {
+                id: selectedImage.id,
                 deviceId: selectedImage.device_id,
                 fileLocation: selectedImage.image_location
             }, {
