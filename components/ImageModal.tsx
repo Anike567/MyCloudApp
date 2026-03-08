@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Image, Modal, StyleSheet, Pressable, ActivityIndicator, Text, Dimensions } from 'react-native';
+import { View, Image, Modal, StyleSheet, Pressable, ActivityIndicator, Text, Dimensions, Alert } from 'react-native';
 import apiClient from '../api_call/apiClient';
 import { useAuth } from '../hooks/useAuth';
-import getWideVineID from '../utility/getWideVineID';
+
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// ✅ Fixed the interface to match what the parent sends
+
 export interface ImageModalProps {
     selectedImage: {
         image_location: string;
@@ -23,6 +23,7 @@ export default function ImageModal({ selectedImage, onClose }: ImageModalProps) 
     const [fullImage, setFullImage] = useState<string | null>(null);
     const [reqId, setReqId] = useState<string | null>(null);
     const { token, androidID } = useAuth();
+    
 
     const startFetchJob = useCallback(async () => {
         if (!selectedImage) return;
@@ -49,7 +50,7 @@ export default function ImageModal({ selectedImage, onClose }: ImageModalProps) 
     }, [selectedImage, token]);
 
     useEffect(() => {
-        if (selectedImage) {   // ✅ Check if image belongs to the current phone
+        if (selectedImage) { 
             if (selectedImage.device_id === androidID) {
                 console.log("Local Image detected, skipping fetch...");
                 setFullImage(selectedImage.image_location);
@@ -68,15 +69,12 @@ export default function ImageModal({ selectedImage, onClose }: ImageModalProps) 
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
 
-        // Only poll if we have a reqId and NO image yet
         if (reqId && !fullImage) {
             intervalId = setInterval(async () => {
                 try {
-                    // We can use x-device-id from interceptor now, but keeping this 
-                    // explicit for clarity
-                    const dId = await getWideVineID();
+                 
                     const statusRes = await apiClient.post(`/fetch/callback/`,
-                        { reqId: reqId, deviceId: dId },
+                        { reqId: reqId, deviceId: androidID },
                         { headers: { Authorization: `Bearer ${token}` } }
                     );
 
@@ -86,13 +84,17 @@ export default function ImageModal({ selectedImage, onClose }: ImageModalProps) 
                             base64Data = `data:image/jpeg;base64,${base64Data}`;
                         }
                         setFullImage(base64Data);
-                        setLoading(false); // 👈 Stop loading when remote image arrives
+                        setLoading(false); 
                         clearInterval(intervalId);
                     }
-                } catch (err) {
-                    console.log("Polling error:", err);
+                } catch (err : any) {
+                    const errorMsg = err.response?.data?.error || err.message || "Unknown error";
+                    console.error("Status Check Error:", errorMsg);
+                    Alert.alert("Error", `Failed to retrieve image: ${errorMsg}`);
+                    setLoading(false);
+                    clearInterval(intervalId);
                 }
-            }, 2000);
+            }, 500);
         }
         return () => { if (intervalId) clearInterval(intervalId); };
     }, [reqId, fullImage, token]);
