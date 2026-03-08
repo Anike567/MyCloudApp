@@ -86,7 +86,6 @@ export default function GalleryScreen() {
     const renderItem = ({ item }: { item: ImageType }) => {
         // Guard against undefined items
         if (!item) return null;
-        console.log(Object.keys(item)); // Debug: Check available keys in item
         return (
             <Pressable
                 onPress={() => setSelectedImage({

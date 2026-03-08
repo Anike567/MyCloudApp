@@ -15,19 +15,21 @@ export interface ImageModalProps {
     onClose: () => void;
 }
 
+
+
 export default function ImageModal({ selectedImage, onClose }: ImageModalProps) {
     const [loading, setLoading] = useState(false);
     const [fullImage, setFullImage] = useState<string | null>(null);
     const [reqId, setReqId] = useState<string | null>(null);
-    const { token } = useAuth();
+    const { token, androidID } = useAuth();
 
     const startFetchJob = useCallback(async () => {
         if (!selectedImage) return;
-        setLoading(true);
 
         try {
+            setLoading(true);
             const res = await apiClient.post(`/fetch/images`, {
-                deviceId: selectedImage.device_id, 
+                deviceId: selectedImage.device_id,
                 fileLocation: selectedImage.image_location
             }, {
                 headers: { Authorization: `Bearer ${token}` }
@@ -45,22 +47,31 @@ export default function ImageModal({ selectedImage, onClose }: ImageModalProps) 
     }, [selectedImage, token]);
 
     useEffect(() => {
-        if (selectedImage) {
-            startFetchJob();
+        if (selectedImage) {   // ✅ Check if image belongs to the current phone
+            if (selectedImage.device_id === androidID) {
+                console.log("Local Image detected, skipping fetch...");
+                setFullImage(selectedImage.image_location);
+                setLoading(false); 
+            } else {
+                startFetchJob();
+            }
         }
         return () => {
             setFullImage(null);
             setReqId(null);
             setLoading(false);
         };
-    }, [selectedImage, startFetchJob]);
+    }, [selectedImage, startFetchJob, androidID]); 
 
     useEffect(() => {
         let intervalId: NodeJS.Timeout;
 
+        // Only poll if we have a reqId and NO image yet
         if (reqId && !fullImage) {
             intervalId = setInterval(async () => {
                 try {
+                    // We can use x-device-id from interceptor now, but keeping this 
+                    // explicit for clarity
                     const dId = await getWideVineID();
                     const statusRes = await apiClient.post(`/fetch/callback/`,
                         { reqId: reqId, deviceId: dId },
@@ -73,7 +84,7 @@ export default function ImageModal({ selectedImage, onClose }: ImageModalProps) 
                             base64Data = `data:image/jpeg;base64,${base64Data}`;
                         }
                         setFullImage(base64Data);
-                        setLoading(false);
+                        setLoading(false); // 👈 Stop loading when remote image arrives
                         clearInterval(intervalId);
                     }
                 } catch (err) {
@@ -94,7 +105,10 @@ export default function ImageModal({ selectedImage, onClose }: ImageModalProps) 
             <View style={styles.container}>
                 <Pressable style={styles.overlay} onPress={onClose} />
                 <View style={styles.content}>
-                    {loading ? (
+                    {/* ✅ Logic Fix: Only show loader if we are actually 
+                      waiting for a remote fetch 
+                    */}
+                    {loading && !fullImage ? (
                         <View style={styles.loaderContainer}>
                             <ActivityIndicator size="large" color="red" />
                             <Text style={styles.loaderText}>Retrieving high-res image...</Text>
@@ -114,6 +128,7 @@ export default function ImageModal({ selectedImage, onClose }: ImageModalProps) 
     );
 }
 
+// ... (styles remain same)
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', justifyContent: 'center' },
     overlay: { ...StyleSheet.absoluteFillObject },

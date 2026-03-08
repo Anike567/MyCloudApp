@@ -1,41 +1,64 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
-# dependencies
+# -------------------------------------------------------------------
+# BASIC DEPENDENCIES
+# -------------------------------------------------------------------
 node_modules/
-
-# Expo
 .expo/
 dist/
 web-build/
 expo-env.d.ts
 
-# Native
-.kotlin/
-*.orig.*
+# -------------------------------------------------------------------
+# NATIVE ROOT FOLDERS (iOS & Android)
+# -------------------------------------------------------------------
+# Do NOT ignore the entire /ios or /android folder if you have custom code there.
+# Instead, ignore ONLY the build artifacts inside them:
+
+android/build/
+android/.gradle/
+android/app/build/
+android/local.properties
+android/*.iml
+
+ios/Pods/
+ios/build/
+ios/.xccheckout
+ios/*.xcworkspace/xcuserdata/
+ios/*.xcodeproj/project.xcworkspace/
+ios/*.xcodeproj/xcuserdata/
+ios/DerivedData/
+
+# -------------------------------------------------------------------
+# CUSTOM NATIVE MODULES (device-id, galler-scanner, etc.)
+# -------------------------------------------------------------------
+# This pattern ignores build folders inside ANY module in your modules/ directory
+# while keeping your .kt, .swift, and .cpp source files tracked.
+
+modules/**/android/build/
+modules/**/android/.gradle/
+modules/**/ios/Pods/
+modules/**/ios/build/
+modules/**/ios/DerivedData/
+modules/**/bin/
+modules/**/obj/
+
+# -------------------------------------------------------------------
+# SECURITY & SENSITIVE FILES (DO NOT COMMIT THESE)
+# -------------------------------------------------------------------
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
+*.pem
+.env*.local
 
-# Metro
+# -------------------------------------------------------------------
+# SYSTEM & TOOLS
+# -------------------------------------------------------------------
+.DS_Store
 .metro-health-check*
-
-# debug
+*.tsbuildinfo
 npm-debug.*
 yarn-debug.*
 yarn-error.*
-
-# macOS
-.DS_Store
-*.pem
-
-# local env files
-.env*.local
-
-# typescript
-*.tsbuildinfo
-
-# generated native folders
-/ios
-/android
+*.orig.*
